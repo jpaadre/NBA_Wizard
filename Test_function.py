@@ -3,6 +3,11 @@ import Stat_Finder
 import Get_Summary_Stats
 import getOpponentAvg
 import Get_League_Avg
+import openpyxl
+from openpyxl import load_workbook
+import os
+from datetime import date
+
 
 #Get dates needed to get games
 yesterday = Schedule_Reader.getYesterday()
@@ -21,11 +26,11 @@ Stat_Finder.calcRest()
 #Calculate the rest detail of yesterday's games
 Stat_Finder.getRestDetail()
 
-'''
 #Update the summary stats tabs with updated summary data
 Get_Summary_Stats.calcORTG()
 Get_Summary_Stats.calcDRTG()
 Get_Summary_Stats.calcPace()
+'''
 Get_League_Avg.getLeagueAvg()
 
 #Create a list of games being played today
@@ -48,4 +53,6 @@ proj = getOpponentAvg.ProjectScores(todaysGames,ORTGs)
 #Check to see how projection did and track win/losses in Excel per game
 
 #Develop new models
+
+
 

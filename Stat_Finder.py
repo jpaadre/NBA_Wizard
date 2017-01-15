@@ -70,13 +70,6 @@ def getStats(gameList):
                 print(statsList[n])
                 sheet.cell(row = row_cell, column = column_cell).value = statsList[n]
                 column_cell= column_cell + 1
-            '''sheet = wb.get_sheet_by_name('Master')
-            for m in range(len(statsList)):
-                print(statsList[m])
-                sheet.cell(row = row_cell, column = column_cell).value = statsList[m]
-                column_cell= column_cell + 1
-'''
-            
     wb.save('Team_Stats_Raw.xlsx')
 
     
@@ -104,7 +97,6 @@ def moveAlltoMaster():
             tab = wb.get_sheet_by_name(j)
             tab_row_count = tab.max_row
             tab_column_count = tab.max_column
-            print (tab_column_count)
             tab_row_cell = 2
             for i in range(tab_row_count-1):             
                 tab_column_cell = 1
@@ -117,11 +109,11 @@ def moveAlltoMaster():
                 master_row_cell = master.max_row + 1
                 master_column_cell = 1
                 for m in range(len(values)):
-                    print(values[m])
                     master.cell(row = master_row_cell, column = master_column_cell).value = values[m]
                     master_column_cell= master_column_cell + 1   
                 tab_row_cell = tab_row_cell + 1
     wb.save('Team_Stats_Raw.xlsx')
+
 
 def calcAllRest():    
     tabs = wb.get_sheet_names()

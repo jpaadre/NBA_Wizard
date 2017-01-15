@@ -509,4 +509,5 @@ def getSummaryStats():
     calcORTG()
     calcDRTG()
     calcPace()
-    wb.save('Team_Stats_Raw.xlsx')
+
+#calcPace()
