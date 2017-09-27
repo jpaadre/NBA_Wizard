@@ -23,6 +23,9 @@ def getDataSet(dataset):
 def SplitTeams(df):
     writer = ExcelWriter(WORKING_DATA_FILE)
     print('Splitting Data')
+
+    df['GAME_DATE'] = pd.to_datetime(df['GAME_DATE_EST'])
+    df = df.loc[df['GAME_DATE'] >= '2016-10-25']
     for i in teamList:
         df1 = df.loc[df['TEAM_ABBREVIATION'] == i]
         #Format Date and calc rest
@@ -41,14 +44,38 @@ def SplitTeams(df):
         df1['AvgDRTG'] = df1['AvgDRTG'].shift(1)
         df1['AvgORTG_L5'] = df1['AvgORTG_L5'].shift(1)
         df1['AvgDRTG_L5'] = df1['AvgDRTG_L5'].shift(1)
+        df1['HomeORTG'] = df1.apply(getHomeORTG,axis=1)
+        df1['AwayORTG'] = df1.apply(getAwayORTG,axis=1)
+        df1['HomeDRTG'] = df1.apply(getHomeDRTG,axis=1)
+        df1['AwayDRTG'] = df1.apply(getAwayDRTG,axis=1)
+        df1['HomeORTG'] = df1['HomeORTG'].expanding().mean()
+        df1['AwayORTG'] = df1['AwayORTG'].expanding().mean()
+        df1['HomeDRTG'] = df1['HomeDRTG'].expanding().mean()
+        df1['AwayDRTG'] = df1['AwayDRTG'].expanding().mean()
+        df1['HomeORTG'] = df1['HomeORTG'].shift(1)
+        df1['AwayORTG'] = df1['AwayORTG'].shift(1)
+        df1['HomeDRTG'] = df1['HomeDRTG'].shift(1)
+        df1['AwayDRTG'] = df1['AwayDRTG'].shift(1)
+        df1['Location_Avg_ORTG'] = df1.apply(getLocationORTG,axis=1)
+        df1['Location_Avg_DRTG'] = df1.apply(getLocationDRTG,axis=1)
 
-        df1 = df1.loc[df1['HomeTeam'].isin(['ATL','BOS','BKN','CHA','CHI','CLE','DAL','DEN','DET','GSW','HOU',
-                 'IND','LAC','LAL','MEM','MIA','MIL','MIN','NOP','NYK','OKC','ORL',
-                 'PHI','PHX','POR','SAC','SAS','TOR','UTA','WAS'])]
+        # dfH = df1.loc[df1['HomeIndex'] == 0]
+        # dfA = df1.loc[df1['HomeIndex'] == 1]
+        # dfH['HomeORTG'] = dfH['OFF_RATING'].expanding().mean()
+        # dfA['AwayORTG'] = dfA['OFF_RATING'].expanding().mean()
+        # dfH['HomeDRTG'] = dfH['DEF_RATING'].expanding().mean()
+        # dfA['AwayDRTG'] = dfA['DEF_RATING'].expanding().mean()
+        # dfH['HomeORTG'] = dfH['HomeORTG'].shift(1)
+        # dfA['AwayORTG'] = dfA['AwayORTG'].shift(1)
+        # dfH['HomeDRTG'] = dfH['HomeDRTG'].shift(1)
+        # dfA['AwayDRTG'] = dfA['AwayDRTG'].shift(1)
+        #
+        # frames = [dfH,dfA]
+        # df2= pd.concat(frames)
+        # df2 = df2.sort_values(by=['GAMECODE'],ascending=[True])
+        #
+        # df2 = df2.fillna(method='ffill')
 
-        df1 = df1.loc[df1['AwayTeam'].isin(['ATL','BOS','BKN','CHA','CHI','CLE','DAL','DEN','DET','GSW','HOU',
-                 'IND','LAC','LAL','MEM','MIA','MIL','MIN','NOP','NYK','OKC','ORL',
-                 'PHI','PHX','POR','SAC','SAS','TOR','UTA','WAS'])]
 
         df1.to_excel(writer,i)
     writer.save()
@@ -90,6 +117,42 @@ def getHomeIndex(df):
     else:
         return (1)
 
+def getHomeORTG(df):
+    if df['HomeIndex'] == 0:
+        return df['OFF_RATING']
+
+
+def getAwayORTG(df):
+    if df['HomeIndex'] == 1:
+        return df['OFF_RATING']
+
+
+def getHomeDRTG(df):
+    if df['HomeIndex'] == 0:
+        return df['DEF_RATING']
+
+
+def getAwayDRTG(df):
+    if df['HomeIndex'] == 1:
+        return df['DEF_RATING']
+
+def getLocationORTG(df):
+    if df['HomeIndex'] == 0:
+        return df['HomeORTG']
+    else:
+        return df['AwayORTG']
+
+def getLocationDRTG(df):
+    if df['HomeIndex'] == 0:
+        return df['HomeDRTG']
+    else:
+        return df['AwayDRTG']
+
+
+
+
+
+
 def SplitJointTeams(df):
     writer = ExcelWriter('Split_Teams_2nd_Time.xlsx')
     print('Splitting Data')
@@ -101,9 +164,17 @@ def SplitJointTeams(df):
         df1['AvgDRTG_OPP'] = df1['AvgDRTG_y'].expanding().mean()
         df1['AvgORTG_L5_OPP'] = df1['AvgORTG_y'].rolling(window=5).mean()
         df1['AvgDRTG_L5_OPP'] = df1['AvgDRTG_y'].rolling(window=5).mean()
-        df1['Opp_ORTG_vs_Avg'] = df1['AvgORTG_OPP'] / df1['LeagueORTG']
-        df1['Opp_DRTG_vs_Avg'] = df1['AvgDRTG_OPP'] / df1['LeagueDRTG']
-        df1['Opp_Pace_vs_Avg'] = df1['AvgPace_OPP'] / df1['LeaguePace']
+        df1['Opp_ORTG_vs_Avg'] = df1['LeagueAvgORTG'] / df1['AvgORTG_OPP']
+        df1['Opp_DRTG_vs_Avg'] = df1['LeagueAvgDRTG']/ df1['AvgDRTG_OPP']
+        df1['Opp_Pace_vs_Avg'] = df1['AvgPace_OPP'] / df1['LeagueAvgPace']
+        df1['Opp_ORTG_vs_Avg_L5'] = df1['LeagueAvgORTG_L5'] / df1['AvgORTG_L5_OPP']
+        df1['Opp_DRTG_vs_Avg_L5'] = df1['LeagueAvgDRTG_L5']/ df1['AvgDRTG_L5_OPP']
+
+        df1['std_AvgORTG'] = df1['AvgORTG_x'] * df1['Opp_DRTG_vs_Avg']
+        df1['std_AvgDRTG'] = df1['AvgDRTG_x'] / df1['Opp_ORTG_vs_Avg']
+        df1['std_AvgORTG_L5'] = df1['AvgORTG_L5_x'] * df1['Opp_DRTG_vs_Avg_L5']
+        df1['std_AvgDRTG_L5'] = df1['AvgDRTG_L5_x'] / df1['Opp_ORTG_vs_Avg_L5']
+
 
         df1.to_excel(writer,i)
     writer.save()
@@ -122,8 +193,8 @@ def getSecondSplit(fileName):
 
     df = df.dropna(subset=['AvgORTG_L5_OPP'])
     df = df.sort_values(by=['GAMECODE','HomeIndex_x'],ascending=[True,True])
-    df = df[['GAMECODE','TEAM_ABBREVIATION_x','HomeIndex_x','DaysRest_x','AvgPace_x','AvgORTG_x','AvgDRTG_x','AvgORTG_L5_x','AvgDRTG_L5_x'
-    ,'TEAM_ABBREVIATION_y','DaysRest_y','AvgPace_y','AvgORTG_y','AvgDRTG_y','AvgORTG_L5_y','AvgDRTG_L5_y','OFF_RATING_x','DEF_RATING_x','PACE_x']]
+    df = df[['GAMECODE','TEAM_ABBREVIATION_x','HomeIndex_x','DaysRest_x','AvgPace_x','AvgORTG_x','AvgDRTG_x','AvgORTG_L5_x','AvgDRTG_L5_x','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5'
+    ,'TEAM_ABBREVIATION_y','DaysRest_y','AvgPace_y','AvgORTG_y','AvgDRTG_y','AvgORTG_L5_y','AvgDRTG_L5_y','OFF_RATING_x']]
 
     writer1 = ExcelWriter("DataForModel.xlsx")
     df.to_excel(writer1,'Master')
@@ -143,14 +214,17 @@ def getLeagueAvg(df):
 
     df4 = pd.merge(df1, df2, on='GAMELINK',how='outer')
     df5 = pd.merge(df4, df3, on='GAMELINK',how='outer')
-    df5['LeagueORTG'] = df5['OFF_RATING_x'].expanding().mean()
-    df5['LeagueDRTG'] = df5['DEF_RATING_x'].expanding().mean()
-    df5['LeaguePace'] = df5['PACE_x'].expanding().mean()
-    df5['LeagueORTG'] = df5['LeagueORTG'].shift(1)
-    df5['LeagueDRTG'] = df5['LeagueDRTG'].shift(1)
-    df5['LeaguePace'] = df5['LeaguePace'].shift(1)
-    df5 = df5[['GAMELINK','LeagueORTG','LeagueDRTG','LeaguePace']]
-
+    df5['LeagueAvgORTG'] = df5['OFF_RATING_x'].expanding().mean()
+    df5['LeagueAvgDRTG'] = df5['DEF_RATING_x'].expanding().mean()
+    df5['LeagueAvgPace'] = df5['PACE_x'].expanding().mean()
+    df5['LeagueAvgORTG'] = df5['LeagueAvgORTG'].shift(1)
+    df5['LeagueAvgDRTG'] = df5['LeagueAvgDRTG'].shift(1)
+    df5['LeagueAvgPace'] = df5['LeagueAvgPace'].shift(1)
+    #
+    df5 = df5[['GAMELINK','LeagueAvgORTG','LeagueAvgDRTG','LeagueAvgPace']]
+    df5['LeagueAvgORTG_L5'] = df5['LeagueAvgORTG'].rolling(window=5).mean()
+    df5['LeagueAvgDRTG_L5'] = df5['LeagueAvgDRTG'].rolling(window=5).mean()
+    #
     df6 = pd.merge(df, df5, on='GAMELINK',how='outer')
 
     # print(df6.head())
@@ -158,16 +232,21 @@ def getLeagueAvg(df):
     df5.to_excel(writer1,'Master')
     writer1.save()
     return df6
+
+
+def getLeagueAvg(df):
+
 #---------------- Split data out by team and calculate stats ------------------------
 # dataset = getDataSet('AllStats_2016.xlsx')
 # SplitTeams(dataset)
 
-#---------------- Consume team data from tabs to make one dataset and combine both teams onto one line------------------------
+# ---------------- Consume team data from tabs to make one dataset and combine both teams onto one line------------------------
 teamdata1 = getFirstSplit(WORKING_DATA_FILE)
 teamdata2 = getLeagueAvg(teamdata1)
+
 
 #---------------- Split data out again to calculate Opponent stats ------------------------
 SplitJointTeams(teamdata2)
 
-#---------------- Cosolidate split team data, remove first 6 rows without Last 5 calcs, Filter only needed columns------------------------
-# teamdata3 = getSecondSplit('Split_Teams_2nd_Time.xlsx')
+# #---------------- Cosolidate split team data, remove first 6 rows without Last 5 calcs, Filter only needed columns------------------------
+teamdata3 = getSecondSplit('Split_Teams_2nd_Time.xlsx')
