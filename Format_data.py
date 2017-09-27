@@ -148,11 +148,6 @@ def getLocationDRTG(df):
     else:
         return df['AwayDRTG']
 
-
-
-
-
-
 def SplitJointTeams(df):
     writer = ExcelWriter('Split_Teams_2nd_Time.xlsx')
     print('Splitting Data')
@@ -177,7 +172,9 @@ def SplitJointTeams(df):
 
 
         df1.to_excel(writer,i)
+
     writer.save()
+    return(df1)
     print('Data Split')
 
 def getSecondSplit(fileName):
@@ -191,10 +188,13 @@ def getSecondSplit(fileName):
             frames = [df,df1]
             df= pd.concat(frames)
 
-    df = df.dropna(subset=['AvgORTG_L5_OPP'])
+    df1 =df[['GAMELINK','AwayTeam','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5']]
+    df['AwayTeam'] = df['TEAM_ABBREVIATION_y']
+    
     df = df.sort_values(by=['GAMECODE','HomeIndex_x'],ascending=[True,True])
     df = df[['GAMECODE','TEAM_ABBREVIATION_x','HomeIndex_x','DaysRest_x','AvgPace_x','AvgORTG_x','AvgDRTG_x','AvgORTG_L5_x','AvgDRTG_L5_x','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5'
-    ,'TEAM_ABBREVIATION_y','DaysRest_y','AvgPace_y','AvgORTG_y','AvgDRTG_y','AvgORTG_L5_y','AvgDRTG_L5_y','OFF_RATING_x']]
+    ,'TEAM_ABBREVIATION_y','DaysRest_y','AvgPace_y','AvgORTG_y','AvgDRTG_y','AvgORTG_L5_y','AvgDRTG_L5_y','HomeORTG_x','HomeDRTG_x','Location_Avg_ORTG_x','Location_Avg_DRTG_x',
+    'HomeORTG_y','HomeDRTG_y','Location_Avg_ORTG_y','Location_Avg_DRTG_y','OFF_RATING_x']]
 
     writer1 = ExcelWriter("DataForModel.xlsx")
     df.to_excel(writer1,'Master')
@@ -234,7 +234,12 @@ def getLeagueAvg(df):
     return df6
 
 
-def getLeagueAvg(df):
+def getOPPStats(df):
+    df['GAMELINK'] = df['GAMECODE'].str[:8]
+    df =df[['GAMELINK','TEAM_ABBREVIATION_y','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5']]
+    df['AwayTeam'] = df['TEAM_ABBREVIATION_y']
+
+
 
 #---------------- Split data out by team and calculate stats ------------------------
 # dataset = getDataSet('AllStats_2016.xlsx')
@@ -246,7 +251,7 @@ teamdata2 = getLeagueAvg(teamdata1)
 
 
 #---------------- Split data out again to calculate Opponent stats ------------------------
-SplitJointTeams(teamdata2)
+teamdata3 = SplitJointTeams(teamdata2)
 
 # #---------------- Cosolidate split team data, remove first 6 rows without Last 5 calcs, Filter only needed columns------------------------
-teamdata3 = getSecondSplit('Split_Teams_2nd_Time.xlsx')
+teamdata4 = getSecondSplit('Split_Teams_2nd_Time.xlsx')
