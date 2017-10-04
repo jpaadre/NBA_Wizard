@@ -188,20 +188,33 @@ def getSecondSplit(fileName):
             frames = [df,df1]
             df= pd.concat(frames)
 
-    df1 =df[['GAMELINK','AwayTeam','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5']]
-    df['AwayTeam'] = df['TEAM_ABBREVIATION_y']
-    
-    df = df.sort_values(by=['GAMECODE','HomeIndex_x'],ascending=[True,True])
-    df = df[['GAMECODE','TEAM_ABBREVIATION_x','HomeIndex_x','DaysRest_x','AvgPace_x','AvgORTG_x','AvgDRTG_x','AvgORTG_L5_x','AvgDRTG_L5_x','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5'
-    ,'TEAM_ABBREVIATION_y','DaysRest_y','AvgPace_y','AvgORTG_y','AvgDRTG_y','AvgORTG_L5_y','AvgDRTG_L5_y','HomeORTG_x','HomeDRTG_x','Location_Avg_ORTG_x','Location_Avg_DRTG_x',
-    'HomeORTG_y','HomeDRTG_y','Location_Avg_ORTG_y','Location_Avg_DRTG_y','OFF_RATING_x']]
-
+    df1 =df[['GAMECODE','HomeIndex_x','std_AvgORTG', 'std_AvgDRTG','std_AvgORTG_L5','std_AvgDRTG_L5']]
+    df1['HomeIndex_x'] = df1.apply(flipHomeIndex,axis=1)
+    df1 = df1.sort_values(by=['GAMECODE','HomeIndex_x'],ascending=[True,True])
+    print(df1.head())
+    df2 = pd.merge(df, df1, on=['GAMECODE','HomeIndex_x'])
+    print(df2.head())
+    df2 = df2.sort_values(by=['GAMECODE','HomeIndex_x'],ascending=[True,True])
+    # print(df2.head())
+    df2 = df2[['GAMECODE','TEAM_ABBREVIATION_x','HomeIndex_x','DaysRest_x','AvgPace_x','AvgORTG_x','AvgDRTG_x','AvgORTG_L5_x','AvgDRTG_L5_x','std_AvgORTG_x', 'std_AvgDRTG_x','std_AvgORTG_L5_x',
+    'std_AvgDRTG_L5_x','TEAM_ABBREVIATION_y','DaysRest_y','AvgPace_y','AvgORTG_y','AvgDRTG_y','AvgORTG_L5_y','AvgDRTG_L5_y','HomeORTG_x','HomeDRTG_x','AwayORTG_x','AwayDRTG_x','Location_Avg_ORTG_x','Location_Avg_DRTG_x',
+    'HomeORTG_y','HomeDRTG_y','AwayORTG_y','AwayDRTG_y','Location_Avg_ORTG_y','Location_Avg_DRTG_y','std_AvgORTG_y', 'std_AvgDRTG_y','std_AvgORTG_L5_y','std_AvgDRTG_L5_y','OFF_RATING_x']]
+    #
+    # writer = ExcelWriter("testMerge.xlsx")
+    # df1.to_excel(writer,'Master')
+    # writer.save()
     writer1 = ExcelWriter("DataForModel.xlsx")
-    df.to_excel(writer1,'Master')
+    df2.to_excel(writer1,'Master')
     writer1.save()
+    # print(df2.head())
+    # print('Data Split')
+    # return df2
 
-    print('Data Split')
-    return df
+# def flipHomeIndex(df):
+#     if df['HomeIndex_x'] == 0:
+#         return (1)
+#     else:
+#         return (0)
 
 def getLeagueAvg(df):
     df['GAMELINK'] = df['GAMECODE'].str[:8]
@@ -246,12 +259,12 @@ def getOPPStats(df):
 # SplitTeams(dataset)
 
 # ---------------- Consume team data from tabs to make one dataset and combine both teams onto one line------------------------
-teamdata1 = getFirstSplit(WORKING_DATA_FILE)
-teamdata2 = getLeagueAvg(teamdata1)
-
-
-#---------------- Split data out again to calculate Opponent stats ------------------------
-teamdata3 = SplitJointTeams(teamdata2)
+# teamdata1 = getFirstSplit(WORKING_DATA_FILE)
+# teamdata2 = getLeagueAvg(teamdata1)
+#
+#
+# #---------------- Split data out again to calculate Opponent stats ------------------------
+# teamdata3 = SplitJointTeams(teamdata2)
 
 # #---------------- Cosolidate split team data, remove first 6 rows without Last 5 calcs, Filter only needed columns------------------------
 teamdata4 = getSecondSplit('Split_Teams_2nd_Time.xlsx')
