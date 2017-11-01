@@ -9,19 +9,20 @@ import requests
 import pandas as pd
 from pandas import ExcelWriter
 import codecs
+from datetime import datetime, timedelta
+from nba_py.constants import CURRENT_SEASON
+from nba_py import constants,game
 os.chdir('C:\\Users\\Peter Haley\\Desktop\\Projects\\Data_Science\\Python\\NBA\\Excel')
 
-wb = load_workbook('Team_Stats_Raw.xlsx')
 
+def getToday():
+    today = datetime.strftime(datetime.now(), '%Y-%m-%d')
+    return today
 
+def getYesterday():
+   yesterday = datetime.strftime(datetime.now() - timedelta(1), '%Y-%m-%d')
+   return yesterday
 
-from nba_py.constants import CURRENT_SEASON
-#print(CURRENT_SEASON)
-
-from nba_py import constants
-#print(constants.SeasonType.Regular)
-
-from nba_py import game
 
 
 def getADVStats(gameList):
@@ -45,12 +46,14 @@ def getADVStats(gameList):
     df1.fillna(method='ffill',inplace=True)
     # print(df1.head())
     print('Stats Compiled')
-    writer = ExcelWriter('AllStats_2016.xlsx')
-    df1.to_excel(writer,'Master')
-    writer.save()
+    return df1
 
 def getAllGames():
-    url = 'http://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2016/league/00_full_schedule.json'
+    #------------2016-----------
+    # url = 'http://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2016/league/00_full_schedule.json'
+    #------------2015-----------
+    url = 'http://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2015/league/00_full_schedule.json'
+
     response = urllib.request.urlopen(url)
     reader = codecs.getreader("utf-8")
     data = json.load(reader(response))
@@ -65,6 +68,67 @@ def getAllGames():
     return gameIDs
 
 
-gamelist = getAllGames()
-# gamelist = ['0011600001']
-getADVStats(gamelist)
+
+def getGames(date):
+    #------------2017-----------
+    url = 'http://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/league/00_full_schedule.json'
+
+    response = urllib.request.urlopen(url)
+    reader = codecs.getreader("utf-8")
+    data = json.load(reader(response))
+    gameIDs = []
+    months = [0,1,2,3,4,5,6,7]
+    for x in months:
+        games = (data['lscd'][x]['mscd']['g'])
+        for i in range(len(games)):
+            if games[i]['gdte'] == date:
+                gameIDs.append(games[i]['gid'])
+    print('Games Aquired')
+    return gameIDs
+
+def getTodaysGames(date):
+    #------------2017-----------
+    url = 'http://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/league/00_full_schedule.json'
+
+    response = urllib.request.urlopen(url)
+    reader = codecs.getreader("utf-8")
+    data = json.load(reader(response))
+    gameIDs = []
+    months = [0,1,2,3,4,5,6,7]
+    for x in months:
+        games = (data['lscd'][x]['mscd']['g'])
+        for i in range(len(games)):
+            if games[i]['gdte'] == date:
+                gameIDs.append(games[i]['gcode'])
+    print('Games Aquired')
+    return gameIDs
+
+def getGamesTilNow(date):
+    #------------2017-----------
+    url = 'http://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/league/00_full_schedule.json'
+
+    response = urllib.request.urlopen(url)
+    reader = codecs.getreader("utf-8")
+    data = json.load(reader(response))
+    gameIDs = []
+    months = [0,1,2,3,4,5,6,7]
+    for x in months:
+        games = (data['lscd'][x]['mscd']['g'])
+        for i in range(len(games)):
+            if games[i]['gdte'] < date and games[i]['gdte'] >= '2017-10-17':
+                gameIDs.append(games[i]['gid'])
+    print('Games Aquired')
+    return gameIDs
+
+# today = getToday()
+# yesterday = getYesterday()
+# print(today)
+#
+# # todaysGames = getGames(today)
+# # yesterdaysGames = getGames(yesterday)
+# GamesSoFar = getGamesTilNow(today)
+# # print(todaysGames,yesterdaysGames)
+# # print(GamesSoFar)
+#
+# # allGames = getAllGames()
+# getADVStats(GamesSoFar)
