@@ -13,8 +13,14 @@ teamList = ['ATL','BOS','BKN','CHA','CHI','CLE','DAL','DEN','DET','GSW','HOU',
          'IND','LAC','LAL','MEM','MIA','MIL','MIN','NOP','NYK','OKC','ORL',
          'PHI','PHX','POR','SAC','SAS','TOR','UTA','WAS']
 
+
 def getDataSet(dataset):
     df = pd.read_excel(dataset)
+    print('Dataset Loaded')
+    return df
+
+def getDataSetcsv(dataset):
+    df = pd.read_csv(dataset)
     print('Dataset Loaded')
     return df
 
